@@ -1,0 +1,26 @@
+{
+  "name": "@unqimages/workspace",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.5.1",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b && cargo build --release",
+    "test": "vitest run",
+    "lint": "oxlint . && eslint .",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "typecheck": "tsc -b"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "eslint": "^9.17.0",
+    "eslint-plugin-oxlint": "^1.0.0",
+    "globals": "^15.14.0",
+    "oxfmt": "^0.58.0",
+    "oxlint": "^1.0.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.18.0",
+    "vitest": "^3.0.0"
+  }
+}
