@@ -1,0 +1,11 @@
+node_modules/
+dist/
+target/
+*.log
+.DS_Store
+.env
+.env.local
+coverage/
+.cache/
+*.tsbuildinfo
+pnpm-debug.log*
