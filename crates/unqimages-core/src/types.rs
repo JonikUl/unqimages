@@ -31,3 +31,10 @@ pub struct CacheEntry {
     pub exact_hash: String,
     pub perceptual_hash: Option<String>,
 }
+
+/// Returned together so the CLI can report scanned counts without a second walk.
+#[derive(Debug, Clone)]
+pub struct ScanResult {
+    pub groups: Vec<DuplicateGroup>,
+    pub scanned: usize,
+}

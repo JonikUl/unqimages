@@ -14,21 +14,23 @@ pub use types::*;
 
 use std::io;
 
-pub fn find_exact_duplicates(config: &Config) -> io::Result<Vec<DuplicateGroup>> {
+/// Ignores perceptual settings so callers get a fast, deterministic check.
+pub fn find_exact_duplicates(config: &Config) -> io::Result<ScanResult> {
     find_duplicates_impl(config, false)
 }
 
-pub fn find_duplicates(config: &Config) -> io::Result<Vec<DuplicateGroup>> {
+pub fn find_duplicates(config: &Config) -> io::Result<ScanResult> {
     find_duplicates_impl(config, true)
 }
 
 fn find_duplicates_impl(
     config: &Config,
     include_perceptual: bool,
-) -> io::Result<Vec<DuplicateGroup>> {
+) -> io::Result<ScanResult> {
     // `find_exact_duplicates` must ignore perceptual settings even if the user
     // enabled them in the config, so the flag is passed explicitly.
     let mut entries = discover_images(config);
+    let scanned = entries.len();
 
     for entry in &mut entries {
         entry.file_hash = Some(hash_file(&entry.path)?);
@@ -46,5 +48,6 @@ fn find_duplicates_impl(
         }
     }
 
-    find_combined_duplicates(entries, perceptual)
+    let groups = find_combined_duplicates(entries, perceptual)?;
+    Ok(ScanResult { groups, scanned })
 }

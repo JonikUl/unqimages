@@ -18,13 +18,13 @@ fn finds_exact_duplicates_and_ignores_uniques() {
     write_file(&root.join("c.png"), b"unique content");
 
     let config = Config::new([root]);
-    let groups = find_exact_duplicates(&config).unwrap();
+    let result = find_exact_duplicates(&config).unwrap();
 
-    assert_eq!(groups.len(), 1);
-    assert_eq!(groups[0].kind, DuplicateKind::Exact);
-    assert_eq!(groups[0].entries.len(), 2);
+    assert_eq!(result.groups.len(), 1);
+    assert_eq!(result.groups[0].kind, DuplicateKind::Exact);
+    assert_eq!(result.groups[0].entries.len(), 2);
 
-    let paths: Vec<_> = groups[0]
+    let paths: Vec<_> = result.groups[0]
         .entries
         .iter()
         .map(|e| e.path.file_name().unwrap().to_string_lossy().into_owned())
@@ -48,10 +48,11 @@ fn exclude_dirs_skip_nested_folders() {
         exclude_dirs: vec![nested],
         extensions: vec![],
         perceptual: None,
+        fail_on_duplicates: false,
     };
 
-    let groups = find_exact_duplicates(&config).unwrap();
-    assert!(groups.is_empty());
+    let result = find_exact_duplicates(&config).unwrap();
+    assert!(result.groups.is_empty());
 }
 
 #[test]
@@ -68,9 +69,10 @@ fn extension_filter_is_case_insensitive() {
         exclude_dirs: vec![],
         extensions: vec!["png".to_string()],
         perceptual: None,
+        fail_on_duplicates: false,
     };
 
-    let groups = find_exact_duplicates(&config).unwrap();
-    assert_eq!(groups.len(), 1);
-    assert_eq!(groups[0].entries.len(), 2);
+    let result = find_exact_duplicates(&config).unwrap();
+    assert_eq!(result.groups.len(), 1);
+    assert_eq!(result.groups[0].entries.len(), 2);
 }

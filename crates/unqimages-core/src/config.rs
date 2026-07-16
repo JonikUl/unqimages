@@ -3,16 +3,42 @@ use std::path::PathBuf;
 
 const MAX_PERCEPTUAL_THRESHOLD: u8 = 64; // 8×8 perceptual hash = 64 bits
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+/// Defaults are chosen so the binary works on first run without project setup.
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
-    #[serde(default)]
+    #[serde(default = "default_include_dirs")]
     pub include_dirs: Vec<PathBuf>,
     #[serde(default)]
     pub exclude_dirs: Vec<PathBuf>,
-    #[serde(default)]
+    #[serde(default = "default_extensions")]
     pub extensions: Vec<String>,
     #[serde(default)]
     pub perceptual: Option<PerceptualConfig>,
+    #[serde(default)]
+    pub fail_on_duplicates: bool,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            include_dirs: default_include_dirs(),
+            exclude_dirs: Vec::new(),
+            extensions: default_extensions(),
+            perceptual: None,
+            fail_on_duplicates: false,
+        }
+    }
+}
+
+fn default_include_dirs() -> Vec<PathBuf> {
+    vec![PathBuf::from("src/assets"), PathBuf::from("public")]
+}
+
+fn default_extensions() -> Vec<String> {
+    ["png", "jpg", "jpeg", "gif", "webp", "svg", "ico"]
+        .into_iter()
+        .map(String::from)
+        .collect()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

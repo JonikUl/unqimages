@@ -43,6 +43,7 @@ fn config_with_perceptual(root: &Path, enabled: bool, threshold: u8) -> Config {
             enabled,
             threshold,
         }),
+        fail_on_duplicates: false,
     }
 }
 
@@ -59,12 +60,12 @@ fn perceptual_enabled_finds_compressed_copy() {
     save_image(&c, &noise_image());
 
     let config = config_with_perceptual(root, true, 10);
-    let groups = find_duplicates(&config).unwrap();
+    let result = find_duplicates(&config).unwrap();
 
-    assert_eq!(groups.len(), 1);
-    assert_eq!(groups[0].kind, DuplicateKind::Perceptual);
+    assert_eq!(result.groups.len(), 1);
+    assert_eq!(result.groups[0].kind, DuplicateKind::Perceptual);
 
-    let paths: Vec<_> = groups[0]
+    let paths: Vec<_> = result.groups[0]
         .entries
         .iter()
         .map(|e| e.path.file_name().unwrap().to_string_lossy().into_owned())
@@ -88,13 +89,13 @@ fn perceptual_disabled_still_finds_exact_duplicates() {
     write_jpeg_copy(&c, &gradient_image(), 80);
 
     let config = config_with_perceptual(root, false, 10);
-    let groups = find_duplicates(&config).unwrap();
+    let result = find_duplicates(&config).unwrap();
 
-    assert_eq!(groups.len(), 1);
-    assert_eq!(groups[0].kind, DuplicateKind::Exact);
-    assert_eq!(groups[0].entries.len(), 2);
+    assert_eq!(result.groups.len(), 1);
+    assert_eq!(result.groups[0].kind, DuplicateKind::Exact);
+    assert_eq!(result.groups[0].entries.len(), 2);
 
-    let paths: Vec<_> = groups[0]
+    let paths: Vec<_> = result.groups[0]
         .entries
         .iter()
         .map(|e| e.path.file_name().unwrap().to_string_lossy().into_owned())
@@ -115,7 +116,7 @@ fn threshold_zero_rejects_similar_but_not_identical_images() {
     save_image(&b, &noise_image());
 
     let config = config_with_perceptual(root, true, 0);
-    let groups = find_duplicates(&config).unwrap();
+    let result = find_duplicates(&config).unwrap();
 
-    assert!(groups.is_empty());
+    assert!(result.groups.is_empty());
 }
