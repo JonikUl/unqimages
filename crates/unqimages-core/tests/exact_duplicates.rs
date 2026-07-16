@@ -47,6 +47,7 @@ fn exclude_dirs_skip_nested_folders() {
         include_dirs: vec![root.to_path_buf()],
         exclude_dirs: vec![nested],
         extensions: vec![],
+        perceptual: None,
     };
 
     let groups = find_exact_duplicates(&config).unwrap();
@@ -66,6 +67,7 @@ fn extension_filter_is_case_insensitive() {
         include_dirs: vec![root.to_path_buf()],
         exclude_dirs: vec![],
         extensions: vec!["png".to_string()],
+        perceptual: None,
     };
 
     let groups = find_exact_duplicates(&config).unwrap();
