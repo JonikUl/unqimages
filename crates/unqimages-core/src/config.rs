@@ -1,5 +1,7 @@
-use serde::{Deserialize, Serialize};
+use serde::{de, Deserialize, Deserializer, Serialize};
 use std::path::PathBuf;
+
+const MAX_PERCEPTUAL_THRESHOLD: u8 = 64; // 8×8 perceptual hash = 64 bits
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Config {
@@ -9,6 +11,42 @@ pub struct Config {
     pub exclude_dirs: Vec<PathBuf>,
     #[serde(default)]
     pub extensions: Vec<String>,
+    #[serde(default)]
+    pub perceptual: Option<PerceptualConfig>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PerceptualConfig {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default = "default_threshold", deserialize_with = "deserialize_threshold")]
+    pub threshold: u8,
+}
+
+impl Default for PerceptualConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            threshold: default_threshold(),
+        }
+    }
+}
+
+fn default_threshold() -> u8 {
+    10
+}
+
+fn deserialize_threshold<'de, D>(deserializer: D) -> Result<u8, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = u8::deserialize(deserializer)?;
+    if value > MAX_PERCEPTUAL_THRESHOLD {
+        return Err(de::Error::custom(format!(
+            "perceptual threshold must be <= {MAX_PERCEPTUAL_THRESHOLD}, got {value}"
+        )));
+    }
+    Ok(value)
 }
 
 impl Config {
@@ -17,5 +55,31 @@ impl Config {
             include_dirs: include_dirs.into_iter().map(Into::into).collect(),
             ..Default::default()
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_perceptual_threshold_is_ten() {
+        let config = PerceptualConfig::default();
+        assert!(!config.enabled);
+        assert_eq!(config.threshold, 10);
+    }
+
+    #[test]
+    fn threshold_within_range_deserializes() {
+        let json = r#"{"enabled": true, "threshold": 42}"#;
+        let config: PerceptualConfig = serde_json::from_str(json).unwrap();
+        assert_eq!(config.threshold, 42);
+    }
+
+    #[test]
+    fn threshold_above_max_rejects() {
+        let json = r#"{"enabled": true, "threshold": 65}"#;
+        let result: Result<PerceptualConfig, _> = serde_json::from_str(json);
+        assert!(result.is_err());
     }
 }
