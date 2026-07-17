@@ -1,2 +1,8 @@
 #!/usr/bin/env node
-console.log('unqimages scaffold');
+
+import { run } from '../dist/index.js';
+
+run().catch((error) => {
+  console.error(error);
+  process.exit(2);
+});
