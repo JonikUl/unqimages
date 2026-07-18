@@ -16,6 +16,10 @@ pub struct CliArgs {
     /// Output format.
     #[arg(long, value_enum, default_value = "json")]
     pub output: OutputFormat,
+
+    /// Ignore the cache and recompute all hashes.
+    #[arg(long)]
+    pub no_cache: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]

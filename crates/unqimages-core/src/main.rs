@@ -50,6 +50,7 @@ fn main() -> std::process::ExitCode {
         duplicates: result.groups,
         scanned: result.scanned,
         elapsed_ms,
+        used_cache: result.used_cache,
     };
 
     let mut stdout = io::stdout().lock();
@@ -65,7 +66,7 @@ fn main() -> std::process::ExitCode {
 }
 
 fn load_config(args: &CliArgs) -> io::Result<Config> {
-    match &args.config {
+    let mut config = match &args.config {
         Some(path) => {
             let contents = fs::read_to_string(path)?;
             serde_json::from_str(&contents).map_err(|e| {
@@ -73,8 +74,14 @@ fn load_config(args: &CliArgs) -> io::Result<Config> {
                     io::ErrorKind::InvalidData,
                     format!("invalid config file: {e}"),
                 )
-            })
+            })?
         }
-        None => Ok(Config::default()),
+        None => Config::default(),
+    };
+
+    if args.no_cache {
+        config.ignore_cache = true;
     }
+
+    Ok(config)
 }

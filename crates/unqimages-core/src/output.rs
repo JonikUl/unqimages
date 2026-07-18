@@ -11,6 +11,7 @@ pub struct CliOutput {
     pub duplicates: Vec<DuplicateGroup>,
     pub scanned: usize,
     pub elapsed_ms: u64,
+    pub used_cache: bool,
 }
 
 impl CliOutput {
@@ -29,13 +30,15 @@ pub fn print_json(output: &CliOutput, writer: &mut dyn Write) -> io::Result<()> 
 
 pub fn print_table(output: &CliOutput, writer: &mut dyn Write) -> io::Result<()> {
     let duplicate_count: usize = output.duplicates.iter().map(|g| g.entries.len()).sum();
+    let cache_note = if output.used_cache { " [used cache]" } else { "" };
     writeln!(
         writer,
-        "Found {} duplicate group(s) ({} file(s)) in {} scanned file(s) ({} ms)",
+        "Found {} duplicate group(s) ({} file(s)) in {} scanned file(s) ({} ms){}",
         output.duplicates.len(),
         duplicate_count,
         output.scanned,
-        output.elapsed_ms
+        output.elapsed_ms,
+        cache_note
     )?;
 
     if output.duplicates.is_empty() {
@@ -93,6 +96,7 @@ mod tests {
             duplicates: vec![group(DuplicateKind::Exact)],
             scanned: 10,
             elapsed_ms: 42,
+            used_cache: false,
         };
         let json = output.to_json().unwrap();
         assert!(json.contains("\"scanned\": 10"));
@@ -106,6 +110,7 @@ mod tests {
             duplicates: vec![group(DuplicateKind::Exact)],
             scanned: 10,
             elapsed_ms: 42,
+            used_cache: false,
         };
         let mut buf = Vec::new();
         print_json(&output, &mut buf).unwrap();
@@ -120,6 +125,7 @@ mod tests {
             duplicates: vec![group(DuplicateKind::Exact)],
             scanned: 10,
             elapsed_ms: 42,
+            used_cache: false,
         };
         let mut buf = Vec::new();
         print_table(&output, &mut buf).unwrap();
@@ -136,6 +142,7 @@ mod tests {
             duplicates: vec![group(DuplicateKind::Perceptual)],
             scanned: 10,
             elapsed_ms: 42,
+            used_cache: false,
         };
         let mut buf = Vec::new();
         print_table(&output, &mut buf).unwrap();
@@ -171,6 +178,7 @@ mod tests {
             duplicates: vec![exact, perceptual],
             scanned: 10,
             elapsed_ms: 42,
+            used_cache: false,
         };
         let mut buf = Vec::new();
         print_table(&output, &mut buf).unwrap();
@@ -186,11 +194,26 @@ mod tests {
             duplicates: Vec::new(),
             scanned: 5,
             elapsed_ms: 7,
+            used_cache: false,
         };
         let mut buf = Vec::new();
         print_table(&output, &mut buf).unwrap();
         let text = String::from_utf8(buf).unwrap();
         assert!(text.contains("Found 0 duplicate group(s) (0 file(s)) in 5 scanned file(s) (7 ms)"));
         assert!(!text.contains("Exact:"));
+    }
+
+    #[test]
+    fn table_output_shows_cache_note_when_used() {
+        let output = CliOutput {
+            duplicates: Vec::new(),
+            scanned: 5,
+            elapsed_ms: 7,
+            used_cache: true,
+        };
+        let mut buf = Vec::new();
+        print_table(&output, &mut buf).unwrap();
+        let text = String::from_utf8(buf).unwrap();
+        assert!(text.contains("[used cache]"));
     }
 }

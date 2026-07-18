@@ -16,6 +16,10 @@ pub struct Config {
     pub perceptual: Option<PerceptualConfig>,
     #[serde(default)]
     pub fail_on_duplicates: bool,
+    #[serde(default)]
+    pub ignore_cache: bool,
+    #[serde(default)]
+    pub cache_dir: Option<PathBuf>,
 }
 
 impl Default for Config {
@@ -26,6 +30,8 @@ impl Default for Config {
             extensions: default_extensions(),
             perceptual: None,
             fail_on_duplicates: false,
+            ignore_cache: false,
+            cache_dir: None,
         }
     }
 }

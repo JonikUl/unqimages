@@ -33,7 +33,7 @@ pub fn discover_images(config: &Config) -> Vec<ImageEntry> {
                 .modified()
                 .ok()
                 .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
-                .map(|d| d.as_secs())
+                .map(|d| d.as_nanos() as u64)
                 // A pre-1970 mtime is treated as epoch to keep the cache schema
                 // simple and monotonic.
                 .unwrap_or(0);
