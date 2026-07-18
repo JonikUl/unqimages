@@ -124,6 +124,8 @@ function resolveConfig(raw: UnqimagesConfig): ResolvedUnqimagesConfig {
     excludeDirs: raw.excludeDirs ?? [],
     extensions: raw.extensions ?? DEFAULT_EXTENSIONS,
     failOnDuplicates: raw.failOnDuplicates ?? false,
+    ignoreCache: raw.ignoreCache ?? false,
+    cacheDir: raw.cacheDir,
     perceptual: raw.perceptual
       ? {
           enabled: raw.perceptual.enabled ?? true,
@@ -149,6 +151,15 @@ function validate(raw: unknown): asserts raw is UnqimagesConfig {
   }
   if (raw.failOnDuplicates !== undefined) {
     assertBoolean(raw.failOnDuplicates, 'failOnDuplicates');
+  }
+  if (raw.ignoreCache !== undefined) {
+    assertBoolean(raw.ignoreCache, 'ignoreCache');
+  }
+  if (raw.cacheDir !== undefined) {
+    assertString(raw.cacheDir, 'cacheDir');
+    if (raw.cacheDir.length === 0) {
+      throw new ConfigError('cacheDir must not be empty');
+    }
   }
 
   if (raw.perceptual !== undefined) {

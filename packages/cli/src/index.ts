@@ -22,6 +22,8 @@ interface RustConfig {
   exclude_dirs: string[];
   extensions: string[];
   fail_on_duplicates: boolean;
+  ignore_cache: boolean;
+  cache_dir?: string;
   perceptual?: { enabled: boolean; threshold: number };
 }
 
@@ -87,7 +89,12 @@ function buildRustConfig(config: ResolvedUnqimagesConfig): RustConfig {
     exclude_dirs: config.excludeDirs,
     extensions: config.extensions.map(normalizeExtension),
     fail_on_duplicates: config.failOnDuplicates,
+    ignore_cache: config.ignoreCache,
   };
+
+  if (config.cacheDir !== undefined) {
+    rustConfig.cache_dir = config.cacheDir;
+  }
 
   if (config.perceptual) {
     rustConfig.perceptual = config.perceptual;

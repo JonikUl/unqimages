@@ -163,4 +163,69 @@ describe('loadConfig', () => {
       cleanup(dir);
     }
   });
+
+  it('leaves cacheDir undefined by default', async () => {
+    const dir = createTempDir();
+    try {
+      const config = await loadConfig(dir);
+      expect(config.ignoreCache).toBe(false);
+      expect(config.cacheDir).toBeUndefined();
+    } finally {
+      cleanup(dir);
+    }
+  });
+
+  it('reads cache settings from config file', async () => {
+    const dir = createTempDir();
+    try {
+      writeFileSync(
+        join(dir, 'unqimages.config.json'),
+        JSON.stringify({ ignoreCache: true, cacheDir: '.cache/unqimages' })
+      );
+      const config = await loadConfig(dir);
+      expect(config.ignoreCache).toBe(true);
+      expect(config.cacheDir).toBe('.cache/unqimages');
+    } finally {
+      cleanup(dir);
+    }
+  });
+
+  it('rejects invalid ignoreCache type', async () => {
+    const dir = createTempDir();
+    try {
+      writeFileSync(
+        join(dir, 'unqimages.config.json'),
+        JSON.stringify({ ignoreCache: 'yes' })
+      );
+      await expect(loadConfig(dir)).rejects.toThrow(ConfigError);
+    } finally {
+      cleanup(dir);
+    }
+  });
+
+  it('rejects empty cacheDir', async () => {
+    const dir = createTempDir();
+    try {
+      writeFileSync(
+        join(dir, 'unqimages.config.json'),
+        JSON.stringify({ cacheDir: '' })
+      );
+      await expect(loadConfig(dir)).rejects.toThrow(ConfigError);
+    } finally {
+      cleanup(dir);
+    }
+  });
+
+  it('rejects non-string cacheDir', async () => {
+    const dir = createTempDir();
+    try {
+      writeFileSync(
+        join(dir, 'unqimages.config.json'),
+        JSON.stringify({ cacheDir: 123 })
+      );
+      await expect(loadConfig(dir)).rejects.toThrow(ConfigError);
+    } finally {
+      cleanup(dir);
+    }
+  });
 });

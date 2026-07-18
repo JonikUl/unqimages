@@ -3,6 +3,8 @@ export interface UnqimagesConfig {
   excludeDirs?: string[];
   extensions?: string[];
   failOnDuplicates?: boolean;
+  ignoreCache?: boolean;
+  cacheDir?: string;
   perceptual?: {
     enabled?: boolean;
     threshold?: number;
