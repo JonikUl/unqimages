@@ -27,9 +27,14 @@ pub enum DuplicateKind {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CacheEntry {
     pub path: PathBuf,
+    pub size: u64,
     pub modified: u64,
-    pub exact_hash: String,
+    pub file_hash: String,
     pub perceptual_hash: Option<String>,
+    /// `serde(default)` keeps older cache files readable; entries with a stale
+    /// version are invalidated at lookup time.
+    #[serde(default)]
+    pub algorithm_version: u32,
 }
 
 /// Returned together so the CLI can report scanned counts without a second walk.
@@ -37,4 +42,5 @@ pub struct CacheEntry {
 pub struct ScanResult {
     pub groups: Vec<DuplicateGroup>,
     pub scanned: usize,
+    pub used_cache: bool,
 }
