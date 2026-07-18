@@ -44,6 +44,8 @@ fn config_with_perceptual(root: &Path, enabled: bool, threshold: u8) -> Config {
             threshold,
         }),
         fail_on_duplicates: false,
+        cache_dir: Some(root.join(".cache")),
+        ..Default::default()
     }
 }
 

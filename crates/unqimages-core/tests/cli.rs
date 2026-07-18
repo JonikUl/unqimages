@@ -101,3 +101,21 @@ fn invalid_output_format_rejected() {
     let (code, _, _) = run(&["--output", "yaml"], dir.path());
     assert_eq!(code, 2);
 }
+
+#[test]
+fn no_cache_flag_ignores_cache_file() {
+    let dir = tempfile::tempdir().unwrap();
+    fs::create_dir(dir.path().join("public")).unwrap();
+    write_file(&dir.path().join("public/a.png"), b"dup");
+    write_file(&dir.path().join("public/b.png"), b"dup");
+
+    // First run builds the cache.
+    let (code, stdout, _) = run(&[], dir.path());
+    assert_eq!(code, 0);
+    assert!(stdout.contains("\"used_cache\": false"));
+
+    // Second run with --no-cache should not use the cache.
+    let (code, stdout, _) = run(&["--no-cache", "--output", "json"], dir.path());
+    assert_eq!(code, 0);
+    assert!(stdout.contains("\"used_cache\": false"));
+}

@@ -17,7 +17,11 @@ fn finds_exact_duplicates_and_ignores_uniques() {
     write_file(&root.join("b.png"), b"duplicate content");
     write_file(&root.join("c.png"), b"unique content");
 
-    let config = Config::new([root]);
+    let config = Config {
+        include_dirs: vec![root.to_path_buf()],
+        cache_dir: Some(root.join(".cache")),
+        ..Default::default()
+    };
     let result = find_exact_duplicates(&config).unwrap();
 
     assert_eq!(result.groups.len(), 1);
@@ -49,6 +53,8 @@ fn exclude_dirs_skip_nested_folders() {
         extensions: vec![],
         perceptual: None,
         fail_on_duplicates: false,
+        cache_dir: Some(root.join(".cache")),
+        ..Default::default()
     };
 
     let result = find_exact_duplicates(&config).unwrap();
@@ -70,6 +76,8 @@ fn extension_filter_is_case_insensitive() {
         extensions: vec!["png".to_string()],
         perceptual: None,
         fail_on_duplicates: false,
+        cache_dir: Some(root.join(".cache")),
+        ..Default::default()
     };
 
     let result = find_exact_duplicates(&config).unwrap();
