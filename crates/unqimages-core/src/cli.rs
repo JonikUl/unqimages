@@ -20,6 +20,14 @@ pub struct CliArgs {
     /// Ignore the cache and recompute all hashes.
     #[arg(long)]
     pub no_cache: bool,
+
+    /// Check staged images as new files.
+    #[arg(long)]
+    pub staged: bool,
+
+    /// Staged file paths passed by lint-staged or another caller.
+    #[arg(trailing_var_arg = true)]
+    pub paths: Vec<PathBuf>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
@@ -58,6 +66,12 @@ impl CliArgs {
                     cwd.display()
                 ));
             }
+        }
+
+        if !self.staged && !self.paths.is_empty() {
+            return Err(
+                "unexpected file paths: use --staged when passing staged file paths".to_string(),
+            );
         }
 
         Ok(self)
@@ -113,23 +127,38 @@ mod tests {
 
     #[test]
     fn missing_cwd_rejected() {
-        let args = CliArgs::try_parse_from([
-            "unqimages-core",
-            "--cwd",
-            "/definitely/missing/dir",
-        ])
-        .unwrap();
+        let args = CliArgs::try_parse_from(["unqimages-core", "--cwd", "/definitely/missing/dir"])
+            .unwrap();
         assert!(args.validate().is_err());
     }
 
     #[test]
     fn file_as_cwd_rejected() {
-        let args = CliArgs::try_parse_from([
-            "unqimages-core",
-            "--cwd",
-            "/etc/hosts",
-        ])
-        .unwrap();
+        let args = CliArgs::try_parse_from(["unqimages-core", "--cwd", "/etc/hosts"]).unwrap();
+        assert!(args.validate().is_err());
+    }
+
+    #[test]
+    fn parse_staged_flag() {
+        let args = CliArgs::try_parse_from(["unqimages-core", "--staged"]).unwrap();
+        assert!(args.staged);
+        assert!(args.paths.is_empty());
+    }
+
+    #[test]
+    fn parse_staged_with_paths() {
+        let args =
+            CliArgs::try_parse_from(["unqimages-core", "--staged", "a.png", "b.jpg"]).unwrap();
+        assert!(args.staged);
+        assert_eq!(
+            args.paths,
+            vec![PathBuf::from("a.png"), PathBuf::from("b.jpg")]
+        );
+    }
+
+    #[test]
+    fn paths_without_staged_rejected() {
+        let args = CliArgs::try_parse_from(["unqimages-core", "a.png"]).unwrap();
         assert!(args.validate().is_err());
     }
 }

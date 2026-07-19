@@ -2,8 +2,9 @@ mod cli;
 mod exit;
 mod output;
 
+use std::process::Command;
 use std::{fs, io, time::Instant};
-use unqimages_core::{find_duplicates, Config};
+use unqimages_core::{find_duplicates, find_duplicates_with_staged, Config};
 
 // Invariant: every error path returns ExitCode::Error (2); only a configured
 // fail-on-duplicates finding can return ExitCode::DuplicatesFound (1).
@@ -37,11 +38,22 @@ fn main() -> std::process::ExitCode {
     };
 
     let start = Instant::now();
-    let result = match find_duplicates(&config) {
-        Ok(result) => result,
-        Err(e) => {
-            eprintln!("error: scan failed: {e}");
-            return ExitCode::Error.into();
+    let result = if args.staged {
+        match run_staged(&args, &config) {
+            Ok(Some(result)) => result,
+            Ok(None) => return ExitCode::Ok.into(),
+            Err(e) => {
+                eprintln!("error: scan failed: {e}");
+                return ExitCode::Error.into();
+            }
+        }
+    } else {
+        match find_duplicates(&config) {
+            Ok(result) => result,
+            Err(e) => {
+                eprintln!("error: scan failed: {e}");
+                return ExitCode::Error.into();
+            }
         }
     };
     let elapsed_ms = start.elapsed().as_millis() as u64;
@@ -63,6 +75,43 @@ fn main() -> std::process::ExitCode {
     }
 
     decide(config.fail_on_duplicates, !output.duplicates.is_empty()).into()
+}
+
+fn run_staged(args: &CliArgs, config: &Config) -> io::Result<Option<unqimages_core::ScanResult>> {
+    let staged_paths = if args.paths.is_empty() {
+        read_staged_paths_from_git()?
+    } else {
+        args.paths.clone()
+    };
+
+    if staged_paths.is_empty() {
+        eprintln!("no staged image files to check");
+        return Ok(None);
+    }
+
+    find_duplicates_with_staged(config, &staged_paths).map(Some)
+}
+
+fn read_staged_paths_from_git() -> io::Result<Vec<std::path::PathBuf>> {
+    let output = Command::new("git")
+        .args(["diff", "--cached", "--name-only", "--diff-filter=ACM"])
+        .stderr(std::process::Stdio::null())
+        .output()?;
+
+    if !output.status.success() {
+        eprintln!("no git repository found or unable to read staged files");
+        return Ok(Vec::new());
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let paths: Vec<std::path::PathBuf> = stdout
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .map(std::path::PathBuf::from)
+        .collect();
+
+    Ok(paths)
 }
 
 fn load_config(args: &CliArgs) -> io::Result<Config> {

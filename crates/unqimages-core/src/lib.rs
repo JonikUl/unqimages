@@ -14,6 +14,7 @@ pub use hash::*;
 pub use perceptual::*;
 pub use types::*;
 
+use std::collections::HashSet;
 use std::io;
 use std::path::PathBuf;
 
@@ -33,15 +34,86 @@ pub fn find_duplicates(config: &Config) -> io::Result<ScanResult> {
     find_duplicates_impl(config, true)
 }
 
-fn find_duplicates_impl(
+/// Checks only the provided staged paths as "new" files, while still scanning
+/// the rest of the project so duplicates against existing files are detected.
+/// Returned duplicate groups are limited to those that involve at least one
+/// staged file, and `scanned` reflects the number of staged image files.
+pub fn find_duplicates_with_staged(
     config: &Config,
+    staged_paths: &[PathBuf],
+) -> io::Result<ScanResult> {
+    find_duplicates_staged_impl(config, staged_paths, true)
+}
+
+fn find_duplicates_impl(config: &Config, include_perceptual: bool) -> io::Result<ScanResult> {
+    let entries = discover_images(config);
+    let scanned = entries.len();
+    process_entries(config, entries, scanned, include_perceptual)
+}
+
+fn find_duplicates_staged_impl(
+    config: &Config,
+    staged_paths: &[PathBuf],
     include_perceptual: bool,
 ) -> io::Result<ScanResult> {
-    // `find_exact_duplicates` must ignore perceptual settings even if the user
-    // enabled them in the config, so the flag is passed explicitly.
-    let mut entries = discover_images(config);
-    let scanned = entries.len();
+    // Discover staged files first so we can use their normalized paths when
+    // filtering both the existing-file set and the resulting duplicate groups.
+    let mut staged = discover_staged_images(config, staged_paths);
+    let scanned = staged.len();
 
+    if scanned == 0 {
+        return Ok(ScanResult {
+            groups: Vec::new(),
+            scanned: 0,
+            used_cache: false,
+        });
+    }
+
+    let staged_set: HashSet<PathBuf> = staged.iter().map(|entry| entry.path.clone()).collect();
+
+    // Use canonical paths for deduplication so the same file is not processed
+    // twice when include_dirs are absolute and staged paths are relative (or
+    // vice versa).
+    let staged_canonical: HashSet<PathBuf> = staged
+        .iter()
+        .filter_map(|entry| std::fs::canonicalize(&entry.path).ok())
+        .collect();
+
+    let mut existing = discover_images(config);
+    existing.retain(|entry| {
+        if staged_set.contains(&entry.path) {
+            return false;
+        }
+        if let Ok(canonical) = std::fs::canonicalize(&entry.path) {
+            if staged_canonical.contains(&canonical) {
+                return false;
+            }
+        }
+        true
+    });
+
+    let mut entries = Vec::with_capacity(existing.len() + staged.len());
+    entries.append(&mut existing);
+    entries.append(&mut staged);
+
+    let mut result = process_entries(config, entries, scanned, include_perceptual)?;
+
+    result.groups.retain(|group| {
+        group
+            .entries
+            .iter()
+            .any(|entry| staged_set.contains(&entry.path))
+    });
+
+    Ok(result)
+}
+
+fn process_entries(
+    config: &Config,
+    mut entries: Vec<ImageEntry>,
+    scanned: usize,
+    include_perceptual: bool,
+) -> io::Result<ScanResult> {
     let cache_path = cache_path(config);
     let mut cache = if config.ignore_cache {
         log::info!("cache ignored by configuration");

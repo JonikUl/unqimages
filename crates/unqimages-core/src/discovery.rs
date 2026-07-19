@@ -27,7 +27,9 @@ pub fn discover_images(config: &Config) -> Vec<ImageEntry> {
                 continue;
             }
 
-            let Ok(metadata) = fs::metadata(path) else { continue };
+            let Ok(metadata) = fs::metadata(path) else {
+                continue;
+            };
             let size = metadata.len();
             let modified = metadata
                 .modified()
@@ -49,6 +51,62 @@ pub fn discover_images(config: &Config) -> Vec<ImageEntry> {
     }
 
     entries
+}
+
+/// Apply project filters to caller-supplied staged paths.
+///
+/// Staged files must respect the same extension and exclusion rules as files
+/// discovered by the normal scan.
+pub fn discover_staged_images(config: &Config, staged_paths: &[PathBuf]) -> Vec<ImageEntry> {
+    let mut entries = Vec::new();
+
+    for path in staged_paths {
+        let path = normalize_staged_path(path);
+
+        if !path.is_file() {
+            continue;
+        }
+
+        if is_excluded(&path, &config.exclude_dirs) {
+            continue;
+        }
+
+        if !has_allowed_extension(&path, &config.extensions) {
+            continue;
+        }
+
+        let Ok(metadata) = fs::metadata(&path) else {
+            continue;
+        };
+        let size = metadata.len();
+        let modified = metadata
+            .modified()
+            .ok()
+            .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+            .map(|d| d.as_nanos() as u64)
+            .unwrap_or(0);
+
+        entries.push(ImageEntry {
+            path,
+            size,
+            modified,
+            file_hash: None,
+            perceptual_hash: None,
+        });
+    }
+
+    entries
+}
+
+fn normalize_staged_path(path: &Path) -> PathBuf {
+    // Keep paths relative to the current directory when possible, matching the
+    // output produced by `git diff --cached --name-only`.
+    if let Ok(cwd) = std::env::current_dir() {
+        if let Ok(stripped) = path.strip_prefix(&cwd) {
+            return stripped.to_path_buf();
+        }
+    }
+    path.to_path_buf()
 }
 
 fn is_excluded(path: &Path, exclude_dirs: &[PathBuf]) -> bool {
