@@ -25,6 +25,18 @@
     "@unqimages/cli-linux-x64": "0.1.0",
     "@unqimages/cli-windows-x64": "0.1.0"
   },
+  "peerDependencies": {
+    "husky": ">=8.0.0",
+    "lint-staged": ">=10.0.0"
+  },
+  "peerDependenciesMeta": {
+    "husky": {
+      "optional": true
+    },
+    "lint-staged": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@unqimages/config": "workspace:*",
     "@types/node": "^22.10.0",
