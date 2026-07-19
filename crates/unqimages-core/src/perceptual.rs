@@ -179,7 +179,9 @@ mod tests {
     }
 
     fn hash_from_bytes(bytes: &[u8]) -> String {
-        ImageHash::<Box<[u8]>>::from_bytes(bytes).unwrap().to_base64()
+        ImageHash::<Box<[u8]>>::from_bytes(bytes)
+            .unwrap()
+            .to_base64()
     }
 
     #[test]

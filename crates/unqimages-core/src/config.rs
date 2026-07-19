@@ -51,7 +51,10 @@ fn default_extensions() -> Vec<String> {
 pub struct PerceptualConfig {
     #[serde(default)]
     pub enabled: bool,
-    #[serde(default = "default_threshold", deserialize_with = "deserialize_threshold")]
+    #[serde(
+        default = "default_threshold",
+        deserialize_with = "deserialize_threshold"
+    )]
     pub threshold: u8,
 }
 

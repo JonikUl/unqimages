@@ -1,9 +1,9 @@
 use unqimages_core::{DuplicateGroup, DuplicateKind};
 
-#[cfg(test)]
-use unqimages_core::ImageEntry;
 use serde::Serialize;
 use std::io::{self, Write};
+#[cfg(test)]
+use unqimages_core::ImageEntry;
 
 /// stdout payload; keep the schema stable so the TypeScript wrapper can parse it.
 #[derive(Debug, Serialize)]
@@ -30,7 +30,11 @@ pub fn print_json(output: &CliOutput, writer: &mut dyn Write) -> io::Result<()> 
 
 pub fn print_table(output: &CliOutput, writer: &mut dyn Write) -> io::Result<()> {
     let duplicate_count: usize = output.duplicates.iter().map(|g| g.entries.len()).sum();
-    let cache_note = if output.used_cache { " [used cache]" } else { "" };
+    let cache_note = if output.used_cache {
+        " [used cache]"
+    } else {
+        ""
+    };
     writeln!(
         writer,
         "Found {} duplicate group(s) ({} file(s)) in {} scanned file(s) ({} ms){}",
@@ -130,7 +134,9 @@ mod tests {
         let mut buf = Vec::new();
         print_table(&output, &mut buf).unwrap();
         let text = String::from_utf8(buf).unwrap();
-        assert!(text.contains("Found 1 duplicate group(s) (2 file(s)) in 10 scanned file(s) (42 ms)"));
+        assert!(
+            text.contains("Found 1 duplicate group(s) (2 file(s)) in 10 scanned file(s) (42 ms)")
+        );
         assert!(text.contains("Exact: abc123"));
         assert!(text.contains("a.png"));
         assert!(text.contains("b.png"));
@@ -183,7 +189,9 @@ mod tests {
         let mut buf = Vec::new();
         print_table(&output, &mut buf).unwrap();
         let text = String::from_utf8(buf).unwrap();
-        assert!(text.contains("Found 2 duplicate group(s) (4 file(s)) in 10 scanned file(s) (42 ms)"));
+        assert!(
+            text.contains("Found 2 duplicate group(s) (4 file(s)) in 10 scanned file(s) (42 ms)")
+        );
         assert!(text.contains("Exact: abc123"));
         assert!(text.contains("Perceptual: def456"));
     }

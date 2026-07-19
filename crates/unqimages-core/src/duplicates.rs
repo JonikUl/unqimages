@@ -104,11 +104,7 @@ mod tests {
         assert!(groups.is_empty());
     }
 
-    fn entry_with_perceptual(
-        path: &str,
-        file_hash: &str,
-        perceptual_hash: &str,
-    ) -> ImageEntry {
+    fn entry_with_perceptual(path: &str, file_hash: &str, perceptual_hash: &str) -> ImageEntry {
         ImageEntry {
             path: PathBuf::from(path),
             size: 0,
