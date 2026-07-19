@@ -119,3 +119,151 @@ fn no_cache_flag_ignores_cache_file() {
     assert_eq!(code, 0);
     assert!(stdout.contains("\"used_cache\": false"));
 }
+
+fn init_git_repo(dir: &std::path::Path) {
+    let status = Command::new("git")
+        .args(["init", "-q"])
+        .current_dir(dir)
+        .status()
+        .expect("failed to run git init");
+    assert!(status.success());
+
+    Command::new("git")
+        .args(["config", "user.email", "test@example.com"])
+        .current_dir(dir)
+        .status()
+        .unwrap();
+    Command::new("git")
+        .args(["config", "user.name", "Test"])
+        .current_dir(dir)
+        .status()
+        .unwrap();
+}
+
+fn git_commit(dir: &std::path::Path, message: &str) {
+    let status = Command::new("git")
+        .args(["commit", "-q", "-m", message])
+        .current_dir(dir)
+        .status()
+        .expect("failed to run git commit");
+    assert!(status.success());
+}
+
+fn git_add(dir: &std::path::Path, path: &str) {
+    let status = Command::new("git")
+        .args(["add", path])
+        .current_dir(dir)
+        .status()
+        .expect("failed to run git add");
+    assert!(status.success());
+}
+
+#[test]
+fn staged_no_files_exit_zero() {
+    let dir = tempfile::tempdir().unwrap();
+    init_git_repo(dir.path());
+
+    let (code, _, stderr) = run(&["--staged"], dir.path());
+    assert_eq!(code, 0);
+    assert!(stderr.contains("no staged image files"));
+}
+
+#[test]
+fn staged_finds_duplicate_of_existing_file() {
+    let dir = tempfile::tempdir().unwrap();
+    fs::create_dir(dir.path().join("public")).unwrap();
+    write_file(&dir.path().join("public/existing.png"), b"dup");
+    init_git_repo(dir.path());
+    git_add(dir.path(), "public/existing.png");
+    git_commit(dir.path(), "initial");
+
+    write_file(&dir.path().join("public/staged.png"), b"dup");
+    git_add(dir.path(), "public/staged.png");
+
+    let config = dir.path().join("unqimages.json");
+    fs::write(&config, r#"{"fail_on_duplicates": true}"#).unwrap();
+
+    let (code, stdout, _) = run(
+        &["--staged", "--config", config.to_str().unwrap()],
+        dir.path(),
+    );
+    assert_eq!(code, 1);
+    assert!(stdout.contains("public/existing.png"));
+    assert!(stdout.contains("public/staged.png"));
+    assert!(stdout.contains("\"scanned\": 1"));
+}
+
+#[test]
+fn staged_with_explicit_paths_finds_duplicates() {
+    let dir = tempfile::tempdir().unwrap();
+    fs::create_dir(dir.path().join("public")).unwrap();
+    write_file(&dir.path().join("public/a.png"), b"dup");
+    write_file(&dir.path().join("public/b.png"), b"dup");
+
+    let (code, stdout, _) = run(&["--staged", "public/a.png", "public/b.png"], dir.path());
+    assert_eq!(code, 0);
+    assert!(stdout.contains("public/a.png"));
+    assert!(stdout.contains("public/b.png"));
+    assert!(stdout.contains("\"scanned\": 2"));
+}
+
+#[test]
+fn staged_does_not_report_existing_duplicates_without_staged_files() {
+    let dir = tempfile::tempdir().unwrap();
+    fs::create_dir(dir.path().join("public")).unwrap();
+    write_file(&dir.path().join("public/a.png"), b"dup");
+    write_file(&dir.path().join("public/b.png"), b"dup");
+    init_git_repo(dir.path());
+    git_add(dir.path(), ".");
+    git_commit(dir.path(), "initial");
+
+    // Stage a new unique file; the existing duplicate pair should not be reported
+    // because it does not involve the staged file.
+    write_file(&dir.path().join("public/staged.png"), b"unique");
+    git_add(dir.path(), "public/staged.png");
+
+    let config = dir.path().join("unqimages.json");
+    fs::write(&config, r#"{"fail_on_duplicates": true}"#).unwrap();
+
+    let (code, stdout, _) = run(
+        &["--staged", "--config", config.to_str().unwrap()],
+        dir.path(),
+    );
+    assert_eq!(code, 0);
+    assert!(stdout.contains("\"duplicates\": []"));
+}
+
+#[test]
+fn staged_does_not_double_count_when_include_dirs_are_absolute() {
+    let dir = tempfile::tempdir().unwrap();
+    fs::create_dir(dir.path().join("public")).unwrap();
+    write_file(&dir.path().join("public/existing.png"), b"dup");
+    init_git_repo(dir.path());
+    git_add(dir.path(), ".");
+    git_commit(dir.path(), "initial");
+
+    write_file(&dir.path().join("public/staged.png"), b"dup");
+    git_add(dir.path(), "public/staged.png");
+
+    let config = dir.path().join("unqimages.json");
+    let include_dir = dir.path().join("public").to_string_lossy().to_string();
+    fs::write(
+        &config,
+        format!(
+            r#"{{"include_dirs": ["{}"], "fail_on_duplicates": true}}"#,
+            include_dir
+        ),
+    )
+    .unwrap();
+
+    let (code, stdout, _) = run(
+        &["--staged", "--config", config.to_str().unwrap()],
+        dir.path(),
+    );
+    assert_eq!(code, 1);
+
+    // The staged file must appear exactly once, not as both an absolute and a
+    // relative path.
+    let staged_count = stdout.matches("staged.png").count();
+    assert_eq!(staged_count, 1);
+}
