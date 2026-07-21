@@ -363,6 +363,19 @@ mod tests {
     }
 
     #[test]
+    fn disabled_cache_swallows_operations_and_does_not_write() {
+        let (dir, path) = temp_cache();
+
+        let mut cache = Cache::disabled();
+        cache.insert(entry("a.png", 1, 1, "hash"));
+        cache.save().unwrap();
+
+        assert!(!cache.used());
+        assert!(!path.exists());
+        assert!(dir.path().read_dir().unwrap().next().is_none());
+    }
+
+    #[test]
     fn merge_preserves_disk_perceptual_hash() {
         let (_dir, path) = temp_cache();
         {
@@ -391,5 +404,36 @@ mod tests {
         let got = cache.get(Path::new("a.png"), 100, 200).unwrap();
         assert_eq!(got.file_hash, "mem_hash");
         assert_eq!(got.perceptual_hash, Some("perceptual".to_string()));
+    }
+
+    #[test]
+    fn interrupted_write_is_recovered_by_next_save() {
+        let (_dir, path) = temp_cache();
+
+        {
+            let mut cache = Cache::load(&path);
+            cache.insert(entry("a.png", 1, 1, "hash-a"));
+            cache.save().unwrap();
+        }
+
+        // Simulate an interrupted write from the same process: a stale temp
+        // file exists but cache.json is still valid.
+        let temp_path = unique_temp_path(&path);
+        {
+            let mut stale = File::create(&temp_path).unwrap();
+            stale.write_all(b"partial json {").unwrap();
+        }
+
+        {
+            let mut cache = Cache::load(&path);
+            cache.insert(entry("b.png", 2, 2, "hash-b"));
+            cache.save().unwrap();
+        }
+
+        assert!(!temp_path.exists());
+
+        let cache = Cache::load(&path);
+        assert!(cache.get(Path::new("a.png"), 1, 1).is_some());
+        assert!(cache.get(Path::new("b.png"), 2, 2).is_some());
     }
 }
