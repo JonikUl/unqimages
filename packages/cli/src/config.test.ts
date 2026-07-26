@@ -1,12 +1,12 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
-import { describe, expect, it } from "vitest";
-import { ConfigError, loadConfig } from "./config.js";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { describe, expect, it } from 'vitest';
+import { ConfigError, loadConfig } from './config.js';
 
-describe("loadConfig", () => {
+describe('loadConfig', () => {
   function createTempDir(): string {
-    return mkdtempSync(join(tmpdir(), "unqimages-config-test-"));
+    return mkdtempSync(join(tmpdir(), 'unqimages-config-test-'));
   }
 
   function cleanup(dir: string): void {
@@ -14,15 +14,15 @@ describe("loadConfig", () => {
   }
 
   function writePackageJson(dir: string, unqimages: unknown): void {
-    writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "test", unqimages }));
+    writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'test', unqimages }));
   }
 
-  it("applies defaults when no config exists", async () => {
+  it('applies defaults when no config exists', async () => {
     const dir = createTempDir();
     try {
       const config = await loadConfig(dir);
-      expect(config.includeDirs).toEqual(["src/assets", "public"]);
-      expect(config.extensions).toEqual(["png", "jpg", "jpeg", "gif", "webp", "svg", "ico"]);
+      expect(config.includeDirs).toEqual(['src/assets', 'public']);
+      expect(config.extensions).toEqual(['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'ico']);
       expect(config.failOnDuplicates).toBe(false);
       expect(config.excludeDirs).toEqual([]);
       expect(config.perceptual).toBeNull();
@@ -31,38 +31,38 @@ describe("loadConfig", () => {
     }
   });
 
-  it("reads config from package.json unqimages field", async () => {
+  it('reads config from package.json unqimages field', async () => {
     const dir = createTempDir();
     try {
-      writePackageJson(dir, { includeDirs: ["img"], extensions: ["png"] });
+      writePackageJson(dir, { includeDirs: ['img'], extensions: ['png'] });
       const config = await loadConfig(dir);
-      expect(config.includeDirs).toEqual(["img"]);
-      expect(config.extensions).toEqual(["png"]);
+      expect(config.includeDirs).toEqual(['img']);
+      expect(config.extensions).toEqual(['png']);
     } finally {
       cleanup(dir);
     }
   });
 
-  it("prefers config file over package.json field", async () => {
+  it('prefers config file over package.json field', async () => {
     const dir = createTempDir();
     try {
-      writePackageJson(dir, { includeDirs: ["pkg"] });
+      writePackageJson(dir, { includeDirs: ['pkg'] });
       writeFileSync(
-        join(dir, "unqimages.config.js"),
+        join(dir, 'unqimages.config.js'),
         'export default { includeDirs: ["file"], extensions: ["jpg"] };\n',
       );
       const config = await loadConfig(dir);
-      expect(config.includeDirs).toEqual(["file"]);
-      expect(config.extensions).toEqual(["jpg"]);
+      expect(config.includeDirs).toEqual(['file']);
+      expect(config.extensions).toEqual(['jpg']);
     } finally {
       cleanup(dir);
     }
   });
 
-  it("supports unqimages.config.json", async () => {
+  it('supports unqimages.config.json', async () => {
     const dir = createTempDir();
     try {
-      writeFileSync(join(dir, "unqimages.config.json"), JSON.stringify({ failOnDuplicates: true }));
+      writeFileSync(join(dir, 'unqimages.config.json'), JSON.stringify({ failOnDuplicates: true }));
       const config = await loadConfig(dir);
       expect(config.failOnDuplicates).toBe(true);
     } finally {
@@ -70,24 +70,24 @@ describe("loadConfig", () => {
     }
   });
 
-  it("supports unqimages.config.mjs default export", async () => {
+  it('supports unqimages.config.mjs default export', async () => {
     const dir = createTempDir();
     try {
       writeFileSync(
-        join(dir, "unqimages.config.mjs"),
+        join(dir, 'unqimages.config.mjs'),
         'export default { includeDirs: ["assets"] };\n',
       );
       const config = await loadConfig(dir);
-      expect(config.includeDirs).toEqual(["assets"]);
+      expect(config.includeDirs).toEqual(['assets']);
     } finally {
       cleanup(dir);
     }
   });
 
-  it("resolves perceptual defaults when object is present", async () => {
+  it('resolves perceptual defaults when object is present', async () => {
     const dir = createTempDir();
     try {
-      writeFileSync(join(dir, "unqimages.config.json"), JSON.stringify({ perceptual: {} }));
+      writeFileSync(join(dir, 'unqimages.config.json'), JSON.stringify({ perceptual: {} }));
       const config = await loadConfig(dir);
       expect(config.perceptual).toEqual({ enabled: false, threshold: 10 });
     } finally {
@@ -95,31 +95,31 @@ describe("loadConfig", () => {
     }
   });
 
-  it("rejects non-array includeDirs", async () => {
+  it('rejects non-array includeDirs', async () => {
     const dir = createTempDir();
     try {
-      writeFileSync(join(dir, "unqimages.config.json"), JSON.stringify({ includeDirs: "src" }));
+      writeFileSync(join(dir, 'unqimages.config.json'), JSON.stringify({ includeDirs: 'src' }));
       await expect(loadConfig(dir)).rejects.toThrow(ConfigError);
     } finally {
       cleanup(dir);
     }
   });
 
-  it("rejects empty strings in includeDirs", async () => {
+  it('rejects empty strings in includeDirs', async () => {
     const dir = createTempDir();
     try {
-      writeFileSync(join(dir, "unqimages.config.json"), JSON.stringify({ includeDirs: [""] }));
+      writeFileSync(join(dir, 'unqimages.config.json'), JSON.stringify({ includeDirs: [''] }));
       await expect(loadConfig(dir)).rejects.toThrow(ConfigError);
     } finally {
       cleanup(dir);
     }
   });
 
-  it("rejects perceptual threshold above 64", async () => {
+  it('rejects perceptual threshold above 64', async () => {
     const dir = createTempDir();
     try {
       writeFileSync(
-        join(dir, "unqimages.config.json"),
+        join(dir, 'unqimages.config.json'),
         JSON.stringify({ perceptual: { threshold: 65 } }),
       );
       await expect(loadConfig(dir)).rejects.toThrow(ConfigError);
@@ -128,11 +128,11 @@ describe("loadConfig", () => {
     }
   });
 
-  it("rejects non-integer perceptual threshold", async () => {
+  it('rejects non-integer perceptual threshold', async () => {
     const dir = createTempDir();
     try {
       writeFileSync(
-        join(dir, "unqimages.config.json"),
+        join(dir, 'unqimages.config.json'),
         JSON.stringify({ perceptual: { threshold: 10.5 } }),
       );
       await expect(loadConfig(dir)).rejects.toThrow(ConfigError);
@@ -141,30 +141,30 @@ describe("loadConfig", () => {
     }
   });
 
-  it("rejects invalid unqimages field type in package.json", async () => {
+  it('rejects invalid unqimages field type in package.json', async () => {
     const dir = createTempDir();
     try {
-      writePackageJson(dir, "not-an-object");
+      writePackageJson(dir, 'not-an-object');
       await expect(loadConfig(dir)).rejects.toThrow(ConfigError);
     } finally {
       cleanup(dir);
     }
   });
 
-  it("finds nearest package.json in parent directory", async () => {
+  it('finds nearest package.json in parent directory', async () => {
     const dir = createTempDir();
     try {
-      writePackageJson(dir, { includeDirs: ["parent"] });
-      const nested = join(dir, "nested");
+      writePackageJson(dir, { includeDirs: ['parent'] });
+      const nested = join(dir, 'nested');
       mkdirSync(nested);
       const config = await loadConfig(nested);
-      expect(config.includeDirs).toEqual(["parent"]);
+      expect(config.includeDirs).toEqual(['parent']);
     } finally {
       cleanup(dir);
     }
   });
 
-  it("leaves cacheDir undefined by default", async () => {
+  it('leaves cacheDir undefined by default', async () => {
     const dir = createTempDir();
     try {
       const config = await loadConfig(dir);
@@ -175,45 +175,45 @@ describe("loadConfig", () => {
     }
   });
 
-  it("reads cache settings from config file", async () => {
+  it('reads cache settings from config file', async () => {
     const dir = createTempDir();
     try {
       writeFileSync(
-        join(dir, "unqimages.config.json"),
-        JSON.stringify({ ignoreCache: true, cacheDir: ".cache/unqimages" }),
+        join(dir, 'unqimages.config.json'),
+        JSON.stringify({ ignoreCache: true, cacheDir: '.cache/unqimages' }),
       );
       const config = await loadConfig(dir);
       expect(config.ignoreCache).toBe(true);
-      expect(config.cacheDir).toBe(".cache/unqimages");
+      expect(config.cacheDir).toBe('.cache/unqimages');
     } finally {
       cleanup(dir);
     }
   });
 
-  it("rejects invalid ignoreCache type", async () => {
+  it('rejects invalid ignoreCache type', async () => {
     const dir = createTempDir();
     try {
-      writeFileSync(join(dir, "unqimages.config.json"), JSON.stringify({ ignoreCache: "yes" }));
+      writeFileSync(join(dir, 'unqimages.config.json'), JSON.stringify({ ignoreCache: 'yes' }));
       await expect(loadConfig(dir)).rejects.toThrow(ConfigError);
     } finally {
       cleanup(dir);
     }
   });
 
-  it("rejects empty cacheDir", async () => {
+  it('rejects empty cacheDir', async () => {
     const dir = createTempDir();
     try {
-      writeFileSync(join(dir, "unqimages.config.json"), JSON.stringify({ cacheDir: "" }));
+      writeFileSync(join(dir, 'unqimages.config.json'), JSON.stringify({ cacheDir: '' }));
       await expect(loadConfig(dir)).rejects.toThrow(ConfigError);
     } finally {
       cleanup(dir);
     }
   });
 
-  it("rejects non-string cacheDir", async () => {
+  it('rejects non-string cacheDir', async () => {
     const dir = createTempDir();
     try {
-      writeFileSync(join(dir, "unqimages.config.json"), JSON.stringify({ cacheDir: 123 }));
+      writeFileSync(join(dir, 'unqimages.config.json'), JSON.stringify({ cacheDir: 123 }));
       await expect(loadConfig(dir)).rejects.toThrow(ConfigError);
     } finally {
       cleanup(dir);

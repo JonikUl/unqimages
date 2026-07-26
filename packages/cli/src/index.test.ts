@@ -64,10 +64,7 @@ describe('unqimages --staged', () => {
 
       writeImage(dir, ['public', 'staged.png']);
       runGit(dir, ['add', 'public/staged.png']);
-      writeFileSync(
-        join(dir, 'unqimages.config.json'),
-        JSON.stringify({ failOnDuplicates: true })
-      );
+      writeFileSync(join(dir, 'unqimages.config.json'), JSON.stringify({ failOnDuplicates: true }));
 
       const { code, stdout } = runWrapper(dir, ['--staged']);
       expect(code).toBe(1);
@@ -88,10 +85,7 @@ describe('unqimages --staged', () => {
 
       writeImage(dir, ['public', 'staged.png'], 'unique');
       runGit(dir, ['add', 'public/staged.png']);
-      writeFileSync(
-        join(dir, 'unqimages.config.json'),
-        JSON.stringify({ failOnDuplicates: true })
-      );
+      writeFileSync(join(dir, 'unqimages.config.json'), JSON.stringify({ failOnDuplicates: true }));
 
       const { code, stdout } = runWrapper(dir, ['--staged']);
       expect(code).toBe(0);
@@ -120,10 +114,7 @@ describe('unqimages --staged', () => {
   it('exits gracefully outside a git repository', () => {
     const dir = createTempDir();
     try {
-      writeFileSync(
-        join(dir, 'unqimages.config.json'),
-        JSON.stringify({ failOnDuplicates: true })
-      );
+      writeFileSync(join(dir, 'unqimages.config.json'), JSON.stringify({ failOnDuplicates: true }));
 
       const { code, stderr } = runWrapper(dir, ['--staged']);
       expect(code).toBe(0);

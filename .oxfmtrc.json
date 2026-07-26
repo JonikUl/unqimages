@@ -7,5 +7,5 @@
   "trailingComma": "all",
   "endOfLine": "lf",
   "insertFinalNewline": true,
-  "ignorePatterns": ["node_modules/**", "dist/**", "target/**"]
+  "ignorePatterns": ["node_modules/**", "dist/**", "target/**", "*.backup", "platform-packages/**"]
 }

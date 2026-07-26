@@ -2,10 +2,14 @@
   "name": "@unqimages/cli",
   "version": "0.1.0",
   "description": "CLI for finding duplicate images",
-  "type": "module",
   "bin": {
     "unqimages": "./bin/unqimages.js"
   },
+  "files": [
+    "bin",
+    "dist"
+  ],
+  "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -14,16 +18,14 @@
       "default": "./dist/index.js"
     }
   },
-  "files": ["bin", "dist"],
   "scripts": {
     "build": "tsc -b",
     "typecheck": "tsc -b"
   },
-  "optionalDependencies": {
-    "@unqimages/cli-darwin-arm64": "0.1.0",
-    "@unqimages/cli-darwin-x64": "0.1.0",
-    "@unqimages/cli-linux-x64": "0.1.0",
-    "@unqimages/cli-windows-x64": "0.1.0"
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@unqimages/config": "workspace:*",
+    "typescript": "^5.7.0"
   },
   "peerDependencies": {
     "husky": ">=8.0.0",
@@ -37,9 +39,10 @@
       "optional": true
     }
   },
-  "devDependencies": {
-    "@unqimages/config": "workspace:*",
-    "@types/node": "^22.10.0",
-    "typescript": "^5.7.0"
+  "optionalDependencies": {
+    "@unqimages/cli-darwin-arm64": "0.1.0",
+    "@unqimages/cli-darwin-x64": "0.1.0",
+    "@unqimages/cli-linux-x64": "0.1.0",
+    "@unqimages/cli-windows-x64": "0.1.0"
   }
 }

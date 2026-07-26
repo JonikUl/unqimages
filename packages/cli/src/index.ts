@@ -143,7 +143,9 @@ function resolveBinary(): string {
     const pkgJsonPath = require.resolve(`${packageName}/package.json`);
     const pkgDir = dirname(pkgJsonPath);
     const pkgMeta: unknown = require(pkgJsonPath);
-    const binaryName = isPackageMeta(pkgMeta) ? (pkgMeta.main ?? 'unqimages-core') : 'unqimages-core';
+    const binaryName = isPackageMeta(pkgMeta)
+      ? (pkgMeta.main ?? 'unqimages-core')
+      : 'unqimages-core';
     const binaryPath = join(pkgDir, binaryName);
     return process.platform === 'win32' ? `${binaryPath}.exe` : binaryPath;
   } catch {
@@ -157,7 +159,7 @@ function resolveBinary(): string {
         'This usually means the optional dependency was not installed.\n\n' +
         'Try reinstalling with:\n  npm install\n\n' +
         'If the problem persists, install the platform package directly:\n' +
-        `  npm install ${packageName}`
+        `  npm install ${packageName}`,
     );
     process.exit(2);
   }
@@ -194,7 +196,9 @@ function collectForwardedArgs(args: string[]): string[] {
       throw new ConfigError(`${arg} is set automatically by unqimages and cannot be overridden`);
     }
     if (arg.startsWith('--config=') || arg.startsWith('--cwd=')) {
-      throw new ConfigError(`${arg.split('=')[0]} is set automatically by unqimages and cannot be overridden`);
+      throw new ConfigError(
+        `${arg.split('=')[0]} is set automatically by unqimages and cannot be overridden`,
+      );
     }
 
     filtered.push(arg);

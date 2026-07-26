@@ -3,13 +3,13 @@ name: Build binaries
 on:
   push:
     branches: [master]
-    tags: ["v*"]
+    tags: ['v*']
   pull_request:
     branches: [master]
     paths:
-      - "crates/**"
-      - "Cargo.toml"
-      - "Cargo.lock"
+      - 'crates/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
   workflow_dispatch:
 
 permissions:

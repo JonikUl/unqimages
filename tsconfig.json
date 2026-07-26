@@ -15,8 +15,5 @@
     "composite": true
   },
   "files": [],
-  "references": [
-    { "path": "./packages/config" },
-    { "path": "./packages/cli" }
-  ]
+  "references": [{ "path": "./packages/config" }, { "path": "./packages/cli" }]
 }
