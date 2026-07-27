@@ -2,25 +2,42 @@
   "name": "@unqimages/workspace",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@11.5.1",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "build": "tsc -b && cargo build --release",
+    "build:release": "tsc -b && tsx scripts/build-release.ts",
     "test": "vitest run",
     "lint": "oxlint . && eslint .",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "sync-versions": "tsx scripts/sync-versions.ts",
+    "generate-manifests": "tsx scripts/generate-platform-manifests.ts",
+    "add-platform-deps": "tsx scripts/add-platform-deps.ts",
+    "copy-binaries": "tsx scripts/copy-platform-binaries.ts",
+    "validate-binaries": "tsx scripts/validate-platform-binaries.ts",
+    "prepare-publish": "tsx scripts/prepare-publish.ts",
+    "restore-packages": "tsx scripts/restore-packages.ts",
+    "validate-no-workspace-protocol": "tsx scripts/validate-no-workspace-protocol.ts",
+    "publish:platforms": "tsx scripts/publish-platform-packages.ts",
+    "publish:main": "tsx scripts/publish-main-packages.ts",
+    "publish:local": "tsx scripts/publish-local.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
     "eslint": "^9.17.0",
     "eslint-plugin-oxlint": "^1.0.0",
+    "glob": "^13.0.6",
     "globals": "^15.14.0",
     "oxfmt": "^0.58.0",
     "oxlint": "^1.0.0",
+    "smol-toml": "^1.7.0",
+    "tsx": "^4.23.1",
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.18.0",
+    "verdaccio": "^6.8.0",
     "vitest": "^3.0.0"
-  }
+  },
+  "packageManager": "pnpm@11.5.1"
 }

@@ -1,6 +1,9 @@
 node_modules/
 dist/
 target/
+tmp/
+scripts/tmp/
+platform-packages/**/unqimages-core*
 *.log
 .DS_Store
 .env

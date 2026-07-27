@@ -1,3 +1,6 @@
 node_modules/
 dist/
 target/
+platform-packages/
+tmp/
+scripts/tmp/

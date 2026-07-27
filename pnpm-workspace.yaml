@@ -1,6 +1,7 @@
 packages:
   - 'packages/*'
   - 'crates/*/npm'
+  - 'platform-packages/*'
 
 onlyBuiltDependencies:
   - 'esbuild'
