@@ -1,0 +1,27 @@
+{
+  "name": "@unqimages/cli-darwin-x64",
+  "version": "0.1.0",
+  "description": "unqimages-core binary for darwin-x64",
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "main": "unqimages-core",
+  "files": [
+    "unqimages-core",
+    "postinstall.js"
+  ],
+  "scripts": {
+    "postinstall": "node postinstall.js"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JonikUl/unqimages"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
