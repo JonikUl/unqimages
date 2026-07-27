@@ -1,0 +1,19 @@
+# Minimal local npm registry for publish:local testing.
+storage: ./tmp/verdaccio/storage
+
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+
+packages:
+  '@unqimages/*':
+    access: $anonymous
+    publish: $anonymous
+    proxy: npmjs
+  '**':
+    access: $anonymous
+    publish: $anonymous
+    proxy: npmjs
+
+log:
+  - { type: stdout, format: pretty, level: warn }
