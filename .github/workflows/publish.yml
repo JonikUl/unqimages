@@ -1,0 +1,174 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'npm dist-tag to apply'
+        required: true
+        default: ''
+        type: choice
+        options:
+          - ''
+          - 'dev'
+
+permissions:
+  contents: read
+
+jobs:
+  build-binaries:
+    name: Build ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            name: linux-x64
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            name: darwin-arm64
+          - target: x86_64-apple-darwin
+            os: macos-13
+            name: darwin-x64
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            name: windows-x64
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build release binary
+        run: cargo build --release --bin unqimages-core --target ${{ matrix.target }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unqimages-core-${{ matrix.name }}
+          path: target/${{ matrix.target }}/release/unqimages-core*
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: Publish to npm
+    needs: build-binaries
+    runs-on: ubuntu-latest
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/@unqimages/cli
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.1
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build TypeScript wrapper and native binary
+        run: pnpm run build
+
+      - name: Compute dev version
+        if: github.event.inputs.tag == 'dev'
+        run: |
+          pnpm tsx scripts/bump-dev-version.ts
+          pnpm tsx scripts/sync-versions.ts
+
+      - name: Generate platform manifests
+        run: pnpm run generate-manifests
+
+      - name: Download binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Arrange binaries for copy script
+        run: |
+          for platform in darwin-x64 darwin-arm64 linux-x64 windows-x64; do
+            mkdir -p "artifacts/binary-${platform}"
+            mv artifacts/unqimages-core-${platform}/unqimages-core* "artifacts/binary-${platform}/"
+          done
+
+      - name: Copy binaries into platform packages
+        run: pnpm run copy-binaries
+
+      - name: Validate platform binaries
+        run: pnpm run validate-binaries
+
+      - name: Prepare packages for publish
+        run: pnpm run prepare-publish
+
+      - name: Validate no workspace protocol references
+        run: pnpm run validate-no-workspace-protocol
+
+      - name: Publish platform packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          TAG_ARG="${{ github.event.inputs.tag }}"
+          if [ -n "$TAG_ARG" ]; then
+            pnpm run publish:platforms -- --tag "$TAG_ARG"
+          else
+            pnpm run publish:platforms
+          fi
+
+      - name: Wait for platform package propagation
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          MAX_RETRIES=20
+          SLEEP=5
+          for platform in darwin-x64 darwin-arm64 linux-x64 windows-x64; do
+            pkg="@unqimages/cli-${platform}"
+            echo "Waiting for ${pkg}@${VERSION}..."
+            for i in $(seq 1 $MAX_RETRIES); do
+              if npm view "${pkg}@${VERSION}" version >/dev/null 2>&1; then
+                echo "  ✅ ${pkg}@${VERSION} is available"
+                break
+              fi
+              echo "  ⏳ retry ${i}/${MAX_RETRIES}..."
+              sleep $SLEEP
+              SLEEP=$(( SLEEP < 30 ? SLEEP + 5 : 30 ))
+            done
+            if ! npm view "${pkg}@${VERSION}" version >/dev/null 2>&1; then
+              echo "  ❌ ${pkg}@${VERSION} did not propagate"
+              exit 1
+            fi
+          done
+
+      - name: Publish main package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          TAG_ARG="${{ github.event.inputs.tag }}"
+          if [ -n "$TAG_ARG" ]; then
+            pnpm run publish:main -- --tag "$TAG_ARG"
+          else
+            pnpm run publish:main
+          fi
+
+      - name: Restore workspace packages
+        if: always()
+        run: pnpm run restore-packages
