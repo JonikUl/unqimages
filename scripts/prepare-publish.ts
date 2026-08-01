@@ -15,7 +15,9 @@ const ROOT = resolve(import.meta.dirname, '..');
 
 const publishableGlobs = ['packages/*/package.json'];
 
-const DEP_TYPES = ['dependencies', 'peerDependencies'] as const;
+// Include optionalDependencies because platform packages are linked via
+// workspace:* during development and must be rewritten before publish.
+const DEP_TYPES = ['dependencies', 'peerDependencies', 'optionalDependencies'] as const;
 
 export interface PreparePublishResult {
   replaced: number;

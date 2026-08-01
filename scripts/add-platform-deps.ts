@@ -33,11 +33,7 @@ export interface AddPlatformDepsResult {
   updated: string[];
 }
 
-export function addPlatformDeps(
-  root: string,
-  cfg: PublishConfig,
-  version: string,
-): AddPlatformDepsResult {
+export function addPlatformDeps(root: string, cfg: PublishConfig): AddPlatformDepsResult {
   const updated: string[] = [];
 
   for (const mainPkg of cfg.mainPackages) {
@@ -51,7 +47,9 @@ export function addPlatformDeps(
     for (const binary of cfg.binaries) {
       for (const platform of cfg.platforms) {
         const depName = `${cfg.scope}/${binary.scope}-${platform}`;
-        expected[depName] = version;
+        // Platform packages are workspace members. workspace:* keeps pnpm's
+        // lockfile in sync; prepare-publish injects the concrete version before publish.
+        expected[depName] = 'workspace:*';
       }
     }
 
@@ -70,7 +68,7 @@ function main(): void {
     version: string;
   };
   console.log(`📦 Adding platform optionalDependencies (version: ${rootPkg.version})`);
-  const { updated } = addPlatformDeps(ROOT, config, rootPkg.version);
+  const { updated } = addPlatformDeps(ROOT, config);
   for (const name of updated) {
     console.log(
       `  ✅ ${name}: added ${config.platforms.length * config.binaries.length} optionalDependencies`,

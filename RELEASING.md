@@ -11,6 +11,8 @@ This guide is for maintainers who publish `unqimages` to npm.
 
 The main package lists the platform packages as `optionalDependencies`, so npm installs only the binary that matches the user's OS and CPU.
 
+During development these optional dependencies use `workspace:*` so pnpm keeps the lockfile in sync. `prepare-publish.ts` rewrites them to concrete versions before npm publish, and `restore-packages.ts` reverts the change afterwards.
+
 Publishing is automated by `.github/workflows/publish.yml`. The workflow builds native binaries on four runners, publishes the platform packages, waits for npm propagation, and then publishes the main package.
 
 ## One-time setup
@@ -51,9 +53,11 @@ The `publish.yml` workflow will then:
 1. Build Rust release binaries for `linux-x64`, `darwin-x64`, `darwin-arm64`, and `windows-x64`.
 2. Generate platform package manifests.
 3. Copy binaries into the platform packages.
-4. Publish the platform packages.
-5. Wait for npm propagation.
-6. Publish `@unqimages/cli`.
+4. Replace `workspace:*` with concrete versions (`prepare-publish.ts`).
+5. Publish the platform packages.
+6. Wait for npm propagation.
+7. Publish `@unqimages/cli`.
+8. Restore `workspace:*` references (`restore-packages.ts`).
 
 ## Local smoke test
 

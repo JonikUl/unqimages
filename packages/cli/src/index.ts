@@ -147,25 +147,30 @@ function resolveBinary(): string {
       ? (pkgMeta.main ?? 'unqimages-core')
       : 'unqimages-core';
     const binaryPath = join(pkgDir, binaryName);
-    if (process.platform === 'win32' && !binaryPath.endsWith('.exe')) {
-      return `${binaryPath}.exe`;
+    const resolvedBinaryPath =
+      process.platform === 'win32' && !binaryPath.endsWith('.exe')
+        ? `${binaryPath}.exe`
+        : binaryPath;
+    if (existsSync(resolvedBinaryPath)) {
+      return resolvedBinaryPath;
     }
-    return binaryPath;
   } catch {
-    const devPath = findLocalBinary();
-    if (devPath) {
-      return devPath;
-    }
-
-    console.error(
-      `Failed to find package "${packageName}" for platform ${platformKey}.\n` +
-        'This usually means the optional dependency was not installed.\n\n' +
-        'Try reinstalling with:\n  npm install\n\n' +
-        'If the problem persists, install the platform package directly:\n' +
-        `  npm install ${packageName}`,
-    );
-    process.exit(2);
+    // Optional dependency may not be installed; fall through to local binary lookup.
   }
+
+  const devPath = findLocalBinary();
+  if (devPath) {
+    return devPath;
+  }
+
+  console.error(
+    `Failed to find package "${packageName}" for platform ${platformKey}.\n` +
+      'This usually means the optional dependency was not installed.\n\n' +
+      'Try reinstalling with:\n  npm install\n\n' +
+      'If the problem persists, install the platform package directly:\n' +
+      `  npm install ${packageName}`,
+  );
+  process.exit(2);
 }
 
 function findLocalBinary(): string | null {

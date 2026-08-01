@@ -9,12 +9,12 @@ CLI for finding duplicate images in a project.
 
 ## Supported platforms
 
-| Platform | Package |
-| --- | --- |
-| Linux x64 | `@unqimages/cli-linux-x64` |
-| macOS x64 | `@unqimages/cli-darwin-x64` |
+| Platform    | Package                       |
+| ----------- | ----------------------------- |
+| Linux x64   | `@unqimages/cli-linux-x64`    |
+| macOS x64   | `@unqimages/cli-darwin-x64`   |
 | macOS ARM64 | `@unqimages/cli-darwin-arm64` |
-| Windows x64 | `@unqimages/cli-windows-x64` |
+| Windows x64 | `@unqimages/cli-windows-x64`  |
 
 The main package declares the platform packages as `optionalDependencies`, so npm installs only the one that matches the host OS and CPU.
 
@@ -34,12 +34,12 @@ The CLI scans the directories configured in `unqimages.config.{js,mjs,json}` (or
 
 ## CLI options
 
-| Option | Description |
-| --- | --- |
-| `--output json\|table` | Output format. Default: `json`. |
-| `--no-cache` | Ignore the cache and recompute all hashes. |
-| `--staged` | Check staged images as new files. Useful in pre-commit hooks. |
-| `--version`, `-V` | Print the package version. |
+| Option                 | Description                                                   |
+| ---------------------- | ------------------------------------------------------------- |
+| `--output json\|table` | Output format. Default: `json`.                               |
+| `--no-cache`           | Ignore the cache and recompute all hashes.                    |
+| `--staged`             | Check staged images as new files. Useful in pre-commit hooks. |
+| `--version`, `-V`      | Print the package version.                                    |
 
 `--config` and `--cwd` are set automatically by the wrapper and cannot be overridden.
 
@@ -69,16 +69,16 @@ You can also use the `unqimages` field in `package.json`. File-based config over
 
 ### Configuration options
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `includeDirs` | `string[]` | `['src/assets', 'public']` | Directories to scan. |
-| `excludeDirs` | `string[]` | `[]` | Directories to skip. |
-| `extensions` | `string[]` | `['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg', 'ico']` | Image extensions to consider. |
-| `failOnDuplicates` | `boolean` | `false` | Exit with code `1` when duplicates are found. |
-| `ignoreCache` | `boolean` | `false` | Ignore the cache for this run. Same as `--no-cache`. |
-| `cacheDir` | `string` | `node_modules/.cache/unqimages` | Directory for the cache file. |
-| `perceptual.enabled` | `boolean` | `false` | Enable perceptual (visual) duplicate detection. |
-| `perceptual.threshold` | `number` | `10` | Hamming distance threshold for perceptual hashes. Range: `0..64`. |
+| Option                 | Type       | Default                                               | Description                                                       |
+| ---------------------- | ---------- | ----------------------------------------------------- | ----------------------------------------------------------------- |
+| `includeDirs`          | `string[]` | `['src/assets', 'public']`                            | Directories to scan.                                              |
+| `excludeDirs`          | `string[]` | `[]`                                                  | Directories to skip.                                              |
+| `extensions`           | `string[]` | `['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg', 'ico']` | Image extensions to consider.                                     |
+| `failOnDuplicates`     | `boolean`  | `false`                                               | Exit with code `1` when duplicates are found.                     |
+| `ignoreCache`          | `boolean`  | `false`                                               | Ignore the cache for this run. Same as `--no-cache`.              |
+| `cacheDir`             | `string`   | `node_modules/.cache/unqimages`                       | Directory for the cache file.                                     |
+| `perceptual.enabled`   | `boolean`  | `false`                                               | Enable perceptual (visual) duplicate detection.                   |
+| `perceptual.threshold` | `number`   | `10`                                                  | Hamming distance threshold for perceptual hashes. Range: `0..64`. |
 
 Perceptual detection is disabled by default. Enable it to catch visually similar images, not just byte-identical files:
 
@@ -97,11 +97,11 @@ Scan results are cached in `node_modules/.cache/unqimages` by default. The cache
 
 ## Exit codes
 
-| Code | Meaning |
-| --- | --- |
-| `0` | No duplicates found, or `failOnDuplicates` is `false`. |
-| `1` | Duplicates found and `failOnDuplicates` is `true`. |
-| `2` | Runtime or configuration error. |
+| Code | Meaning                                                |
+| ---- | ------------------------------------------------------ |
+| `0`  | No duplicates found, or `failOnDuplicates` is `false`. |
+| `1`  | Duplicates found and `failOnDuplicates` is `true`.     |
+| `2`  | Runtime or configuration error.                        |
 
 ## Pre-commit hook with Husky and lint-staged
 
