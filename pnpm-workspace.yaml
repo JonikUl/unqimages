@@ -3,5 +3,5 @@ packages:
   - 'crates/*/npm'
   - 'platform-packages/*'
 
-onlyBuiltDependencies:
-  - 'esbuild'
+allowBuilds:
+  esbuild: true
