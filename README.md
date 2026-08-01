@@ -72,7 +72,7 @@ cargo clippy -- -D warnings
 
 ## Contributing
 
-Bug reports, feature requests, and pull requests are welcome. Release instructions for maintainers are in [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+Bug reports, feature requests, and pull requests are welcome. See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for guidelines. Release instructions for maintainers are in [`RELEASING.md`](./RELEASING.md).
 
 ## License
 

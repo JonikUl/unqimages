@@ -1,84 +1,67 @@
-# Releasing
+# Contributing
 
-This guide is for maintainers who publish `unqimages` to npm.
+Contributions are welcome. This document outlines how to report issues, submit changes, and keep the codebase healthy.
 
-## Release model
+## Reporting issues
 
-`unqimages` is distributed as a scoped npm package (`@unqimages/cli`) using the **platform packages** pattern:
+Before opening a new issue, please check whether a similar one already exists. When reporting a bug, include:
 
-- `@unqimages/cli` — the main TypeScript wrapper.
-- `@unqimages/cli-linux-x64`, `@unqimages/cli-darwin-x64`, `@unqimages/cli-darwin-arm64`, `@unqimages/cli-windows-x64` — platform-specific packages containing the Rust binary.
+- The version of `@unqimages/cli` you are using.
+- Your operating system and architecture.
+- A minimal set of steps to reproduce the problem.
+- The exact command you ran and the output you saw.
 
-The main package lists the platform packages as `optionalDependencies`, so npm installs only the binary that matches the user's OS and CPU.
+## Setting up the project
 
-Publishing is automated by `.github/workflows/publish.yml`. The workflow builds native binaries on four runners, publishes the platform packages, waits for npm propagation, and then publishes the main package.
+Requirements:
 
-## One-time setup
+- Node.js 18 or later
+- pnpm 11.5.1 or later
+- Rust toolchain (stable)
 
-1. Ensure the npm scope **`@unqimages`** exists and your account has publish access. If it does not exist, create an organization at [npmjs.com](https://www.npmjs.com/).
-2. Add an `NPM_TOKEN` secret to the GitHub repository:
-   - Go to **Settings → Secrets and variables → Actions → New repository secret**.
-   - Use an npm access token with publish permissions.
-
-## Publishing a release
-
-### First release
-
-The current base version is `0.1.0`. To trigger the first release:
+Clone the repository and install dependencies:
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+pnpm install
 ```
 
-### Subsequent releases
-
-Bump the version, propagate it through the workspace, and push a tag:
+Build the TypeScript wrapper and the Rust binary:
 
 ```bash
-npm version patch   # or minor / major
-pnpm run sync-versions
-pnpm run add-platform-deps   # keeps optionalDependencies in @unqimages/cli in sync
-pnpm run generate-manifests
-git add -A
-git commit -m "chore: release v$(node -p 'require('./package.json').version')"
-git tag "v$(node -p 'require('./package.json').version')"
-git push origin master --tags
+pnpm run build
 ```
 
-The `publish.yml` workflow will then:
+## Running checks
 
-1. Build Rust release binaries for `linux-x64`, `darwin-x64`, `darwin-arm64`, and `windows-x64`.
-2. Generate platform package manifests.
-3. Copy binaries into the platform packages.
-4. Publish the platform packages.
-5. Wait for npm propagation.
-6. Publish `@unqimages/cli`.
-
-## Local smoke test
-
-To verify the publish pipeline without uploading to the public npm registry:
+All checks should pass before you open a pull request:
 
 ```bash
-pnpm run publish:local
+pnpm test
+pnpm run lint
+pnpm typecheck
+cargo test
+cargo clippy -- -D warnings
+cargo fmt --check
+pnpm format:check
 ```
 
-This starts a local Verdaccio registry, publishes the host platform package and the main package, installs them in a temporary project, and checks `npx unqimages --version`.
+## Making changes
 
-## Verification and troubleshooting
+- Keep changes focused on a single concern per pull request.
+- Add or update tests for bug fixes and new features.
+- Match the existing code style. Rust code is formatted with `cargo fmt`; TypeScript code is formatted with `oxfmt`.
+- Write clear commit messages in English. Use the present tense and describe what the change does, for example:
+  - `fix(cli): resolve binary path on Windows`
+  - `feat(core): add perceptual hash threshold option`
+  - `docs: update CLI README`
 
-After pushing a tag:
+## Pull request process
 
-- Check the **Actions** tab in GitHub. The `Publish` workflow should be green.
-- Confirm the packages exist on npm:
-  - `@unqimages/cli@<version>`
-  - `@unqimages/cli-linux-x64@<version>`
-  - `@unqimages/cli-darwin-x64@<version>`
-  - `@unqimages/cli-darwin-arm64@<version>`
-  - `@unqimages/cli-windows-x64@<version>`
+1. Fork the repository and create a branch from `master`.
+2. Make your changes and run the full check suite.
+3. Open a pull request with a clear description of the problem and the solution.
+4. Wait for CI to pass and address any review feedback.
 
-Common failures:
+## Releasing
 
-- Missing or invalid `NPM_TOKEN`.
-- The `@unqimages` scope does not exist or the token's account lacks publish access.
-- A platform package with the same version already exists.
+Release instructions for maintainers are in [`RELEASING.md`](./RELEASING.md).
