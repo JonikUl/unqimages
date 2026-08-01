@@ -33,10 +33,7 @@ export interface AddPlatformDepsResult {
   updated: string[];
 }
 
-export function addPlatformDeps(
-  root: string,
-  cfg: PublishConfig,
-): AddPlatformDepsResult {
+export function addPlatformDeps(root: string, cfg: PublishConfig): AddPlatformDepsResult {
   const updated: string[] = [];
 
   for (const mainPkg of cfg.mainPackages) {
