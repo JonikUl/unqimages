@@ -41,9 +41,9 @@
     }
   },
   "optionalDependencies": {
-    "@unqimages/cli-darwin-arm64": "0.1.0",
-    "@unqimages/cli-darwin-x64": "0.1.0",
-    "@unqimages/cli-linux-x64": "0.1.0",
-    "@unqimages/cli-windows-x64": "0.1.0"
+    "@unqimages/cli-darwin-arm64": "workspace:*",
+    "@unqimages/cli-darwin-x64": "workspace:*",
+    "@unqimages/cli-linux-x64": "workspace:*",
+    "@unqimages/cli-windows-x64": "workspace:*"
   }
 }

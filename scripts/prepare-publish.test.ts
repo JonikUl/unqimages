@@ -18,6 +18,9 @@ describe('preparePublish + restorePackages', () => {
       peerDependencies: {
         husky: 'workspace:^',
       },
+      optionalDependencies: {
+        '@unqimages/cli-linux-x64': 'workspace:*',
+      },
       devDependencies: {
         '@unqimages/build-utils': 'workspace:*',
       },
@@ -29,13 +32,14 @@ describe('preparePublish + restorePackages', () => {
 
     try {
       const { replaced } = preparePublish(root, '0.2.0');
-      expect(replaced).toBe(3);
+      expect(replaced).toBe(4);
 
       const prepared = JSON.parse(
         readFileSync(join(root, 'packages', 'cli', 'package.json'), 'utf8'),
       );
       expect(prepared.dependencies['@unqimages/config']).toBe('0.2.0');
       expect(prepared.peerDependencies['husky']).toBe('^0.2.0');
+      expect(prepared.optionalDependencies['@unqimages/cli-linux-x64']).toBe('0.2.0');
       expect(prepared.devDependencies).toBeUndefined();
 
       const { restored } = restorePackages(root);

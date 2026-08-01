@@ -38,13 +38,13 @@ describe('addPlatformDeps', () => {
     );
 
     try {
-      const { updated } = addPlatformDeps(root, config, '0.2.0');
+      const { updated } = addPlatformDeps(root, config);
       expect(updated).toEqual(['@unqimages/cli']);
 
       const pkg = JSON.parse(readFileSync(join(root, 'packages', 'cli', 'package.json'), 'utf8'));
       expect(pkg.optionalDependencies).toEqual({
-        '@unqimages/cli-linux-x64': '0.2.0',
-        '@unqimages/cli-darwin-arm64': '0.2.0',
+        '@unqimages/cli-linux-x64': 'workspace:*',
+        '@unqimages/cli-darwin-arm64': 'workspace:*',
       });
     } finally {
       rmSync(root, { recursive: true, force: true });
@@ -60,14 +60,14 @@ describe('addPlatformDeps', () => {
         name: '@unqimages/cli',
         version: '0.2.0',
         optionalDependencies: {
-          '@unqimages/cli-linux-x64': '0.2.0',
-          '@unqimages/cli-darwin-arm64': '0.2.0',
+          '@unqimages/cli-linux-x64': 'workspace:*',
+          '@unqimages/cli-darwin-arm64': 'workspace:*',
         },
       }) + '\n',
     );
 
     try {
-      const { updated } = addPlatformDeps(root, config, '0.2.0');
+      const { updated } = addPlatformDeps(root, config);
       expect(updated).toEqual([]);
     } finally {
       rmSync(root, { recursive: true, force: true });

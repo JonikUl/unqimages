@@ -66,6 +66,19 @@ importers:
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
+    optionalDependencies:
+      '@unqimages/cli-darwin-arm64':
+        specifier: workspace:*
+        version: link:../../platform-packages/cli-darwin-arm64
+      '@unqimages/cli-darwin-x64':
+        specifier: workspace:*
+        version: link:../../platform-packages/cli-darwin-x64
+      '@unqimages/cli-linux-x64':
+        specifier: workspace:*
+        version: link:../../platform-packages/cli-linux-x64
+      '@unqimages/cli-windows-x64':
+        specifier: workspace:*
+        version: link:../../platform-packages/cli-windows-x64
 
   packages/config:
     devDependencies:
