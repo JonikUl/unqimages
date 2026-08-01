@@ -7,5 +7,12 @@
   "trailingComma": "all",
   "endOfLine": "lf",
   "insertFinalNewline": true,
-  "ignorePatterns": ["node_modules/**", "dist/**", "target/**", "*.backup", "platform-packages/**"]
+  "ignorePatterns": [
+    "node_modules/**",
+    "dist/**",
+    "target/**",
+    "*.backup",
+    "platform-packages/**",
+    ".github/**/*.yml"
+  ]
 }
