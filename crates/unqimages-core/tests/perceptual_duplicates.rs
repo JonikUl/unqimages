@@ -39,10 +39,7 @@ fn config_with_perceptual(root: &Path, enabled: bool, threshold: u8) -> Config {
         include_dirs: vec![root.to_path_buf()],
         exclude_dirs: vec![],
         extensions: vec![],
-        perceptual: Some(PerceptualConfig {
-            enabled,
-            threshold,
-        }),
+        perceptual: Some(PerceptualConfig { enabled, threshold }),
         fail_on_duplicates: false,
         cache_dir: Some(root.join(".cache")),
         ..Default::default()

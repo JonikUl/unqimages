@@ -147,7 +147,10 @@ function resolveBinary(): string {
       ? (pkgMeta.main ?? 'unqimages-core')
       : 'unqimages-core';
     const binaryPath = join(pkgDir, binaryName);
-    return process.platform === 'win32' ? `${binaryPath}.exe` : binaryPath;
+    if (process.platform === 'win32' && !binaryPath.endsWith('.exe')) {
+      return `${binaryPath}.exe`;
+    }
+    return binaryPath;
   } catch {
     const devPath = findLocalBinary();
     if (devPath) {
