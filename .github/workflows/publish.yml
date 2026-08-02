@@ -122,7 +122,7 @@ jobs:
         run: pnpm run prepare-publish
 
       - name: Validate no workspace protocol references
-        run: pnpm run validate-no-workspace-protocol
+        run: ./node_modules/.bin/tsx scripts/validate-no-workspace-protocol.ts
 
       - name: Publish platform packages
         env:
@@ -130,9 +130,9 @@ jobs:
         run: |
           TAG_ARG="${{ github.event.inputs.tag }}"
           if [ -n "$TAG_ARG" ]; then
-            pnpm run publish:platforms -- --tag "$TAG_ARG"
+            ./node_modules/.bin/tsx scripts/publish-platform-packages.ts --tag "$TAG_ARG"
           else
-            pnpm run publish:platforms
+            ./node_modules/.bin/tsx scripts/publish-platform-packages.ts
           fi
 
       - name: Wait for platform package propagation
@@ -164,11 +164,11 @@ jobs:
         run: |
           TAG_ARG="${{ github.event.inputs.tag }}"
           if [ -n "$TAG_ARG" ]; then
-            pnpm run publish:main -- --tag "$TAG_ARG"
+            ./node_modules/.bin/tsx scripts/publish-main-packages.ts --tag "$TAG_ARG"
           else
-            pnpm run publish:main
+            ./node_modules/.bin/tsx scripts/publish-main-packages.ts
           fi
 
       - name: Restore workspace packages
         if: always()
-        run: pnpm run restore-packages
+        run: ./node_modules/.bin/tsx scripts/restore-packages.ts
