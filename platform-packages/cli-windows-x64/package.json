@@ -1,6 +1,6 @@
 {
   "name": "@unqimages/cli-windows-x64",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "unqimages-core binary for windows-x64",
   "os": [
     "win32"
