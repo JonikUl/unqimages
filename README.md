@@ -14,6 +14,15 @@ Find duplicate images in a project. Fast.
 - **Pre-commit hook** support via Husky and lint-staged.
 - **Cross-platform** native binaries for Linux, macOS, and Windows.
 
+## Requirements
+
+- Node.js 18+
+- Linux: glibc 2.35+ (Ubuntu 22.04 or newer)
+- macOS: 13+
+- Windows: 10+
+
+See [`packages/cli/README.md`](./packages/cli/README.md) for platform details.
+
 ## Quick start
 
 ```bash
