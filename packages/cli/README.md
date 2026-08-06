@@ -9,14 +9,16 @@ CLI for finding duplicate images in a project.
 
 ## Supported platforms
 
-| Platform    | Package                       |
-| ----------- | ----------------------------- |
-| Linux x64   | `@unqimages/cli-linux-x64`    |
-| macOS x64   | `@unqimages/cli-darwin-x64`   |
-| macOS ARM64 | `@unqimages/cli-darwin-arm64` |
-| Windows x64 | `@unqimages/cli-windows-x64`  |
+| Platform    | Package                       | Minimum OS                  |
+| ----------- | ----------------------------- | --------------------------- |
+| Linux x64   | `@unqimages/cli-linux-x64`    | glibc 2.35+ (Ubuntu 22.04+) |
+| macOS x64   | `@unqimages/cli-darwin-x64`   | macOS 13+                   |
+| macOS ARM64 | `@unqimages/cli-darwin-arm64` | macOS 13+                   |
+| Windows x64 | `@unqimages/cli-windows-x64`  | Windows 10+                 |
 
 The main package declares the platform packages as `optionalDependencies`, so npm installs only the one that matches the host OS and CPU.
+
+> **Note:** The Linux binary is built on Ubuntu 22.04 and links against glibc 2.35. It runs on Ubuntu 22.04 and newer, as well as other Linux distributions with a compatible glibc version.
 
 ## Installation
 
